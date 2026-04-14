@@ -4,12 +4,12 @@ services:
     image: ouro-news:latest
     restart: unless-stopped
     ports:
-      - "4321:4321"
+      - "4323:4323"
     env_file:
       - .env
     environment:
       HOST: 0.0.0.0
-      PORT: 4321
+      PORT: 4323
       NODE_ENV: production
     depends_on:
       mariadb:

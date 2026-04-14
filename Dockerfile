@@ -22,9 +22,9 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
 ENV HOST=0.0.0.0
-ENV PORT=4321
+ENV PORT=4323
 ENV NODE_ENV=production
 
-EXPOSE 4321
+EXPOSE 4323
 
 CMD ["node", "./dist/server/entry.mjs"]
