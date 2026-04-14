@@ -1,4 +1,54 @@
 services:
+  app:
+    build: .
+    image: ouro-news:latest
+    restart: unless-stopped
+    ports:
+      - "4321:4321"
+    env_file:
+      - .env
+    environment:
+      HOST: 0.0.0.0
+      PORT: 4321
+      NODE_ENV: production
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker-ingestion:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    restart: unless-stopped
+    command: ["npx", "tsx", "workers/ingestion.ts"]
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker-analysis:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    restart: unless-stopped
+    command: ["npx", "tsx", "workers/analysis.ts"]
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
   mariadb:
     image: mariadb:11
     restart: unless-stopped
