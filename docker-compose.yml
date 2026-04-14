@@ -3,14 +3,24 @@ services:
     build: .
     image: ouro-news:latest
     restart: unless-stopped
-    ports:
-      - "4323:4323"
+    expose:
+      - "4323"
     env_file:
       - .env
     environment:
       HOST: 0.0.0.0
       PORT: 4323
       NODE_ENV: production
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ouro-news.rule=Host(`ouro.webquantum.info`)"
+      - "traefik.http.routers.ouro-news.entrypoints=websecure"
+      - "traefik.http.routers.ouro-news.tls.certresolver=le-dns"
+      - "traefik.http.services.ouro-news.loadbalancer.server.port=4323"
+      - "traefik.docker.network=proxy"
+    networks:
+      - proxy
+      - default
     depends_on:
       mariadb:
         condition: service_healthy
@@ -83,3 +93,7 @@ services:
 volumes:
   mariadb_data:
   redis_data:
+
+networks:
+  proxy:
+    external: true
