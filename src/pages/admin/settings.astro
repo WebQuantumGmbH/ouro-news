@@ -1,0 +1,47 @@
+---
+import AdminLayout from '@layouts/AdminLayout.astro';
+
+export const prerender = false;
+---
+
+<AdminLayout title="Einstellungen">
+  <div class="space-y-6">
+    <div class="bg-surface rounded-xl border border-border p-6">
+      <h2 class="text-lg font-semibold mb-4">API-Keys Status</h2>
+      <div class="space-y-3 text-sm">
+        <div class="flex justify-between items-center p-3 bg-background rounded-lg">
+          <span>OpenAI API Key</span>
+          <span class={import.meta.env.OPENAI_API_KEY ? 'text-sentiment-positive font-medium' : 'text-sentiment-negative font-medium'}>
+            {import.meta.env.OPENAI_API_KEY ? '✓ Konfiguriert' : '✗ Fehlt'}
+          </span>
+        </div>
+        <div class="flex justify-between items-center p-3 bg-background rounded-lg">
+          <span>Google OAuth</span>
+          <span class={import.meta.env.GOOGLE_CLIENT_ID ? 'text-sentiment-positive font-medium' : 'text-sentiment-negative font-medium'}>
+            {import.meta.env.GOOGLE_CLIENT_ID ? '✓ Konfiguriert' : '✗ Fehlt'}
+          </span>
+        </div>
+        <div class="flex justify-between items-center p-3 bg-background rounded-lg">
+          <span>Apify Token</span>
+          <span class={import.meta.env.APIFY_API_TOKEN ? 'text-sentiment-positive font-medium' : 'text-sentiment-negative font-medium'}>
+            {import.meta.env.APIFY_API_TOKEN ? '✓ Konfiguriert' : '✗ Fehlt'}
+          </span>
+        </div>
+        <div class="flex justify-between items-center p-3 bg-background rounded-lg">
+          <span>Qdrant</span>
+          <span class="text-sentiment-positive font-medium">
+            ✓ {import.meta.env.QDRANT_URL || 'webquantum.info:16333'}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-surface rounded-xl border border-border p-6">
+      <h2 class="text-lg font-semibold mb-4">Hinweis</h2>
+      <p class="text-sm text-text-muted">
+        API-Keys und Einstellungen werden über Umgebungsvariablen (.env) konfiguriert.
+        Nach Änderungen muss der Server neu gestartet werden.
+      </p>
+    </div>
+  </div>
+</AdminLayout>

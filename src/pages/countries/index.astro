@@ -1,0 +1,33 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+
+const countries = [
+  { code: 'DE', name: 'Deutschland', flag: '🇩🇪' },
+  { code: 'US', name: 'USA', flag: '🇺🇸' },
+  { code: 'RU', name: 'Russland', flag: '🇷🇺' },
+  { code: 'CN', name: 'China', flag: '🇨🇳' },
+  { code: 'GB', name: 'Großbritannien', flag: '🇬🇧' },
+  { code: 'FR', name: 'Frankreich', flag: '🇫🇷' },
+  { code: 'JP', name: 'Japan', flag: '🇯🇵' },
+  { code: 'IN', name: 'Indien', flag: '🇮🇳' },
+  { code: 'BR', name: 'Brasilien', flag: '🇧🇷' },
+  { code: 'AU', name: 'Australien', flag: '🇦🇺' },
+];
+---
+
+<BaseLayout title="Länder-Vergleich">
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <h1 class="text-3xl font-bold mb-4">Länder-Vergleich</h1>
+    <p class="text-text-muted mb-8">Wie berichten verschiedene Länder über die gleichen Themen?</p>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      {countries.map((c) => (
+        <a href={`/countries/${c.code}`} class="flex flex-col items-center p-6 bg-surface rounded-xl border border-border hover:shadow-lg hover:border-primary/30 transition-all group">
+          <span class="text-5xl mb-3 group-hover:scale-110 transition-transform">{c.flag}</span>
+          <span class="font-semibold text-sm">{c.name}</span>
+          <span class="text-xs text-text-muted">{c.code}</span>
+        </a>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

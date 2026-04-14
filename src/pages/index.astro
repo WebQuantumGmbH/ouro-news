@@ -1,0 +1,86 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import NewsCard from '@components/astro/NewsCard.astro';
+import { db } from '@lib/db/client';
+import { articles, articleAnalysis, sources } from '@lib/db/schema';
+import { eq, desc } from 'drizzle-orm';
+
+const latestNews = await db
+  .select({
+    id: articles.id,
+    title: articles.title,
+    summary: articles.summary,
+    slug: articles.slug,
+    imageUrl: articles.imageUrl,
+    publishedAt: articles.publishedAt,
+    sourceName: sources.name,
+    sourceCountry: sources.country,
+    sentimentLabel: articleAnalysis.sentimentLabel,
+    politicalLabel: articleAnalysis.politicalLabel,
+    factualityScore: articleAnalysis.factualityScore,
+    topics: articleAnalysis.topics,
+  })
+  .from(articles)
+  .leftJoin(articleAnalysis, eq(articleAnalysis.articleId, articles.id))
+  .leftJoin(sources, eq(sources.id, articles.sourceId))
+  .orderBy(desc(articles.publishedAt))
+  .limit(24);
+---
+
+<BaseLayout title="Startseite">
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Hero -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl md:text-5xl font-bold mb-4">
+        <span class="text-primary">ouro</span>.news
+      </h1>
+      <p class="text-lg text-text-muted max-w-2xl mx-auto">
+        KI-gestützte Nachrichtenanalyse — Nachrichten verstehen, vergleichen, Muster erkennen.
+      </p>
+    </div>
+
+    <!-- Quick Navigation -->
+    <nav class="flex flex-wrap justify-center gap-3 mb-10">
+      <a href="/topics" class="px-4 py-2 bg-surface rounded-full border border-border hover:border-primary hover:text-primary transition-colors text-sm font-medium">
+        Themen
+      </a>
+      <a href="/countries" class="px-4 py-2 bg-surface rounded-full border border-border hover:border-primary hover:text-primary transition-colors text-sm font-medium">
+        Länder
+      </a>
+      <a href="/analysis" class="px-4 py-2 bg-surface rounded-full border border-border hover:border-primary hover:text-primary transition-colors text-sm font-medium">
+        Analyse
+      </a>
+      <a href="/patterns" class="px-4 py-2 bg-surface rounded-full border border-border hover:border-primary hover:text-primary transition-colors text-sm font-medium">
+        Muster-Erkennung
+      </a>
+    </nav>
+
+    <!-- News Grid -->
+    <h2 class="text-2xl font-bold mb-6">Aktuelle Nachrichten</h2>
+    {latestNews.length > 0 ? (
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {latestNews.map((news) => (
+          <NewsCard
+            id={news.id}
+            title={news.title}
+            summary={news.summary}
+            slug={news.slug}
+            imageUrl={news.imageUrl}
+            publishedAt={news.publishedAt?.toISOString()}
+            sourceName={news.sourceName || undefined}
+            sentimentLabel={news.sentimentLabel || undefined}
+            politicalLabel={news.politicalLabel || undefined}
+            factualityScore={news.factualityScore || undefined}
+            topics={news.topics || []}
+            country={news.sourceCountry || undefined}
+          />
+        ))}
+      </div>
+    ) : (
+      <div class="text-center py-16 bg-surface rounded-xl border border-border">
+        <p class="text-xl text-text-muted mb-4">Noch keine Nachrichten vorhanden</p>
+        <p class="text-sm text-text-muted">Quellen im <a href="/admin/sources" class="text-primary hover:underline">Admin-Bereich</a> konfigurieren.</p>
+      </div>
+    )}
+  </section>
+</BaseLayout>

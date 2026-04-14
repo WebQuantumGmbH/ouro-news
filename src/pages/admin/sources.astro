@@ -1,0 +1,10 @@
+---
+import AdminLayout from '@layouts/AdminLayout.astro';
+import AdminSourceConfig from '@components/vue/AdminSourceConfig.vue';
+
+export const prerender = false;
+---
+
+<AdminLayout title="Quellen verwalten">
+  <AdminSourceConfig client:load />
+</AdminLayout>

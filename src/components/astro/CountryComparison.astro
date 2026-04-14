@@ -1,0 +1,75 @@
+---
+interface CountryData {
+  country: string;
+  sentiment: number;
+  politicalLeaning: number;
+  articleCount: number;
+  summary: string;
+}
+
+interface Props {
+  topic: string;
+  countries: CountryData[];
+  comparisonText?: string;
+}
+
+const { topic, countries, comparisonText } = Astro.props;
+
+function flagEmoji(code: string): string {
+  const flags: Record<string, string> = {
+    DE: '🇩🇪', US: '🇺🇸', RU: '🇷🇺', CN: '🇨🇳', GB: '🇬🇧', FR: '🇫🇷',
+    JP: '🇯🇵', IN: '🇮🇳', BR: '🇧🇷', AU: '🇦🇺', CA: '🇨🇦', IT: '🇮🇹',
+  };
+  return flags[code] || code;
+}
+---
+
+<section class="bg-surface rounded-xl border border-border p-6">
+  <h3 class="text-lg font-bold mb-4">Ländervergleich: <span class="text-primary">{topic}</span></h3>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+    {countries.map((c) => (
+      <div class="bg-background rounded-lg p-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-2xl">{flagEmoji(c.country)}</span>
+          <span class="font-semibold">{c.country}</span>
+          <span class="text-xs text-text-muted ml-auto">{c.articleCount} Artikel</span>
+        </div>
+        <div class="space-y-2">
+          <div>
+            <span class="text-xs text-text-muted">Stimmung</span>
+            <div class="flex items-center gap-2">
+              <div class="flex-1 h-2 bg-border rounded-full overflow-hidden">
+                <div
+                  class="h-full rounded-full"
+                  style={`width: ${((c.sentiment + 1) / 2) * 100}%; background: hsl(${((c.sentiment + 1) / 2) * 120}, 70%, 45%)`}
+                ></div>
+              </div>
+              <span class="text-xs font-mono w-10 text-right">{c.sentiment.toFixed(2)}</span>
+            </div>
+          </div>
+          <div>
+            <span class="text-xs text-text-muted">Politisch</span>
+            <div class="flex items-center gap-2">
+              <div class="flex-1 h-2 bg-border rounded-full overflow-hidden relative">
+                <div
+                  class="absolute h-full w-1 bg-gray-800 rounded-full"
+                  style={`left: ${((c.politicalLeaning + 1) / 2) * 100}%`}
+                ></div>
+              </div>
+              <span class="text-xs font-mono w-10 text-right">{c.politicalLeaning.toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+        <p class="text-xs text-text-muted mt-2 line-clamp-3">{c.summary}</p>
+      </div>
+    ))}
+  </div>
+
+  {comparisonText && (
+    <div class="border-t border-border pt-4">
+      <h4 class="text-sm font-semibold mb-2">KI-Zusammenfassung</h4>
+      <p class="text-sm text-text-muted leading-relaxed">{comparisonText}</p>
+    </div>
+  )}
+</section>

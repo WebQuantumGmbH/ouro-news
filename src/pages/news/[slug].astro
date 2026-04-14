@@ -1,0 +1,160 @@
+---
+import ArticleLayout from '@layouts/ArticleLayout.astro';
+import SentimentBadge from '@components/astro/SentimentBadge.astro';
+import { db } from '@lib/db/client';
+import { articles, articleAnalysis, sources } from '@lib/db/schema';
+import { eq } from 'drizzle-orm';
+
+export const prerender = false;
+
+const { slug } = Astro.params;
+
+const [article] = await db
+  .select()
+  .from(articles)
+  .where(eq(articles.slug, slug!))
+  .limit(1);
+
+if (!article) {
+  return Astro.redirect('/404');
+}
+
+const [analysis] = await db
+  .select()
+  .from(articleAnalysis)
+  .where(eq(articleAnalysis.articleId, article.id));
+
+const [source] = await db
+  .select()
+  .from(sources)
+  .where(eq(sources.id, article.sourceId));
+
+const politicalLabels: Record<string, string> = {
+  far_left: 'Sehr Links', left: 'Links', center_left: 'Mitte-Links',
+  center: 'Mitte', center_right: 'Mitte-Rechts', right: 'Rechts', far_right: 'Sehr Rechts',
+};
+
+const factLabels: Record<string, string> = {
+  verified: 'Verifiziert', likely_true: 'Wahrscheinlich wahr', uncertain: 'Unsicher',
+  likely_false: 'Wahrscheinlich falsch', false: 'Als falsch eingestuft',
+};
+---
+
+<ArticleLayout
+  title={article.title}
+  description={article.summary || undefined}
+  publishedAt={article.publishedAt?.toISOString()}
+>
+  <Fragment slot="meta">
+    {source && (
+      <span class="inline-flex items-center gap-1 text-sm">
+        Quelle: <strong>{source.name}</strong> ({source.country})
+      </span>
+    )}
+    <a href={article.url} target="_blank" rel="noopener" class="text-primary hover:underline text-sm">
+      Original →
+    </a>
+  </Fragment>
+
+  <!-- Artikel-Inhalt -->
+  <Fragment set:html={article.content} />
+
+  <!-- Analyse-Sidebar -->
+  <Fragment slot="sidebar">
+    {analysis ? (
+      <>
+        <!-- Sentiment -->
+        <div class="bg-background rounded-lg p-4">
+          <h3 class="text-sm font-semibold mb-3">Sentiment</h3>
+          <SentimentBadge score={analysis.sentimentScore} label={analysis.sentimentLabel} size="lg" />
+          <div class="mt-3 space-y-1">
+            {Object.entries(analysis.emotionalTone as Record<string, number>).map(([emotion, value]) => (
+              <div class="flex items-center gap-2 text-xs">
+                <span class="w-16 capitalize">{emotion}</span>
+                <div class="flex-1 h-1.5 bg-border rounded-full overflow-hidden">
+                  <div class="h-full bg-primary rounded-full" style={`width: ${(value as number) * 100}%`}></div>
+                </div>
+                <span class="w-8 text-right font-mono">{((value as number) * 100).toFixed(0)}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <!-- Politische Ausrichtung -->
+        <div class="bg-background rounded-lg p-4">
+          <h3 class="text-sm font-semibold mb-3">Politische Ausrichtung</h3>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-political-left font-medium">Links</span>
+            <div class="flex-1 h-3 bg-border rounded-full relative overflow-hidden">
+              <div class="absolute inset-0 bg-gradient-to-r from-political-left via-political-center to-political-right opacity-20"></div>
+              <div
+                class="absolute top-0 h-full w-3 bg-primary rounded-full border-2 border-white shadow"
+                style={`left: calc(${((analysis.politicalLeaning + 1) / 2) * 100}% - 6px)`}
+              ></div>
+            </div>
+            <span class="text-xs text-political-right font-medium">Rechts</span>
+          </div>
+          <p class="text-xs text-text-muted mt-2 text-center">{politicalLabels[analysis.politicalLabel] || analysis.politicalLabel}</p>
+        </div>
+
+        <!-- Wahrheitsgehalt -->
+        <div class="bg-background rounded-lg p-4">
+          <h3 class="text-sm font-semibold mb-3">Wahrheitsgehalt</h3>
+          <div class="flex items-center gap-3">
+            <div class="relative w-16 h-16">
+              <svg viewBox="0 0 36 36" class="w-16 h-16 transform -rotate-90">
+                <circle cx="18" cy="18" r="15.9" stroke="currentColor" stroke-width="3" fill="none" class="text-border" />
+                <circle
+                  cx="18" cy="18" r="15.9"
+                  stroke="currentColor" stroke-width="3" fill="none"
+                  stroke-dasharray={`${analysis.factualityScore * 100} 100`}
+                  class={analysis.factualityScore > 0.7 ? 'text-sentiment-positive' : analysis.factualityScore > 0.4 ? 'text-sentiment-neutral' : 'text-sentiment-negative'}
+                />
+              </svg>
+              <span class="absolute inset-0 flex items-center justify-center text-sm font-bold">
+                {Math.round(analysis.factualityScore * 100)}%
+              </span>
+            </div>
+            <span class="text-sm font-medium">{factLabels[analysis.factualityLabel] || analysis.factualityLabel}</span>
+          </div>
+        </div>
+
+        <!-- Themen -->
+        {analysis.topics && (analysis.topics as string[]).length > 0 && (
+          <div class="bg-background rounded-lg p-4">
+            <h3 class="text-sm font-semibold mb-3">Themen</h3>
+            <div class="flex flex-wrap gap-2">
+              {(analysis.topics as string[]).map((t) => (
+                <a href={`/topics/${encodeURIComponent(t)}`} class="text-xs px-3 py-1 bg-primary/10 text-primary rounded-full hover:bg-primary/20 transition-colors">
+                  {t}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <!-- Entitäten -->
+        {analysis.keyEntities && (
+          <div class="bg-background rounded-lg p-4">
+            <h3 class="text-sm font-semibold mb-3">Erkannte Entitäten</h3>
+            <div class="space-y-2 text-xs">
+              {(analysis.keyEntities as {persons: string[], places: string[], organizations: string[]}).persons.length > 0 && (
+                <div><span class="font-medium">Personen:</span> {(analysis.keyEntities as {persons: string[]}).persons.join(', ')}</div>
+              )}
+              {(analysis.keyEntities as {persons: string[], places: string[], organizations: string[]}).places.length > 0 && (
+                <div><span class="font-medium">Orte:</span> {(analysis.keyEntities as {places: string[]}).places.join(', ')}</div>
+              )}
+              {(analysis.keyEntities as {persons: string[], places: string[], organizations: string[]}).organizations.length > 0 && (
+                <div><span class="font-medium">Organisationen:</span> {(analysis.keyEntities as {organizations: string[]}).organizations.join(', ')}</div>
+              )}
+            </div>
+          </div>
+        )}
+      </>
+    ) : (
+      <div class="bg-background rounded-lg p-4 text-center">
+        <p class="text-sm text-text-muted">Analyse wird durchgeführt...</p>
+      </div>
+    )}
+  </Fragment>
+</ArticleLayout>

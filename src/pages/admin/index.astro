@@ -1,0 +1,65 @@
+---
+import AdminLayout from '@layouts/AdminLayout.astro';
+import { db } from '@lib/db/client';
+import { articles, sources, articleAnalysis } from '@lib/db/schema';
+import { sql } from 'drizzle-orm';
+
+export const prerender = false;
+
+const [{ articleCount }] = await db.select({ articleCount: sql<number>`count(*)` }).from(articles);
+const [{ sourceCount }] = await db.select({ sourceCount: sql<number>`count(*)` }).from(sources);
+const [{ analyzedCount }] = await db.select({ analyzedCount: sql<number>`count(*)` }).from(articleAnalysis);
+---
+
+<AdminLayout title="Dashboard">
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+    <div class="bg-surface rounded-xl border border-border p-6">
+      <p class="text-3xl font-bold text-primary">{articleCount}</p>
+      <p class="text-sm text-text-muted mt-1">Artikel gesamt</p>
+    </div>
+    <div class="bg-surface rounded-xl border border-border p-6">
+      <p class="text-3xl font-bold text-primary">{sourceCount}</p>
+      <p class="text-sm text-text-muted mt-1">Aktive Quellen</p>
+    </div>
+    <div class="bg-surface rounded-xl border border-border p-6">
+      <p class="text-3xl font-bold text-primary">{analyzedCount}</p>
+      <p class="text-sm text-text-muted mt-1">Analysierte Artikel</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-surface rounded-xl border border-border p-6">
+      <h2 class="text-lg font-semibold mb-4">Schnellaktionen</h2>
+      <div class="space-y-3">
+        <a href="/admin/sources" class="flex items-center gap-3 p-3 bg-background rounded-lg hover:bg-primary/5 transition-colors">
+          <span class="text-xl">📡</span>
+          <div>
+            <p class="text-sm font-medium">Quellen verwalten</p>
+            <p class="text-xs text-text-muted">RSS-Feeds, APIs, Scraper konfigurieren</p>
+          </div>
+        </a>
+        <a href="/admin/settings" class="flex items-center gap-3 p-3 bg-background rounded-lg hover:bg-primary/5 transition-colors">
+          <span class="text-xl">⚙️</span>
+          <div>
+            <p class="text-sm font-medium">Einstellungen</p>
+            <p class="text-xs text-text-muted">Sprachen, Analyse-Optionen, API-Keys</p>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="bg-surface rounded-xl border border-border p-6">
+      <h2 class="text-lg font-semibold mb-4">Pipeline-Status</h2>
+      <div class="space-y-3 text-sm">
+        <div class="flex justify-between items-center">
+          <span class="text-text-muted">Artikel wartend auf Analyse</span>
+          <span class="font-mono font-medium">{articleCount - analyzedCount}</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-text-muted">Analyse-Quote</span>
+          <span class="font-mono font-medium">{articleCount > 0 ? ((analyzedCount / articleCount) * 100).toFixed(1) : 0}%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</AdminLayout>

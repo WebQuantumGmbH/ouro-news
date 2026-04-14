@@ -1,0 +1,105 @@
+---
+interface Props {
+  id: string;
+  title: string;
+  summary?: string | null;
+  slug: string;
+  imageUrl?: string | null;
+  publishedAt?: string | null;
+  sourceName?: string;
+  sentimentLabel?: string;
+  politicalLabel?: string;
+  factualityScore?: number;
+  topics?: string[];
+  country?: string;
+}
+
+const {
+  title,
+  summary,
+  slug,
+  imageUrl,
+  publishedAt,
+  sourceName,
+  sentimentLabel,
+  politicalLabel,
+  factualityScore,
+  topics = [],
+  country,
+} = Astro.props;
+
+const sentimentColors: Record<string, string> = {
+  very_positive: 'bg-sentiment-positive/20 text-sentiment-positive',
+  positive: 'bg-sentiment-positive/10 text-sentiment-positive',
+  neutral: 'bg-sentiment-neutral/10 text-sentiment-neutral',
+  negative: 'bg-sentiment-negative/10 text-sentiment-negative',
+  very_negative: 'bg-sentiment-negative/20 text-sentiment-negative',
+};
+
+const sentimentLabels: Record<string, string> = {
+  very_positive: 'Sehr Positiv',
+  positive: 'Positiv',
+  neutral: 'Neutral',
+  negative: 'Negativ',
+  very_negative: 'Sehr Negativ',
+};
+---
+
+<a href={`/news/${slug}`} class="group block bg-surface rounded-xl border border-border hover:shadow-lg transition-all duration-200 overflow-hidden">
+  {imageUrl && (
+    <div class="aspect-video overflow-hidden">
+      <img
+        src={imageUrl}
+        alt={title}
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        loading="lazy"
+      />
+    </div>
+  )}
+  <div class="p-5">
+    <div class="flex items-center gap-2 mb-3 flex-wrap">
+      {sentimentLabel && (
+        <span class={`text-xs font-semibold px-2 py-0.5 rounded-full ${sentimentColors[sentimentLabel] || ''}`}>
+          {sentimentLabels[sentimentLabel] || sentimentLabel}
+        </span>
+      )}
+      {country && (
+        <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+          {country}
+        </span>
+      )}
+      {factualityScore !== undefined && (
+        <span class={`text-xs font-medium px-2 py-0.5 rounded-full ${factualityScore > 0.7 ? 'bg-green-100 text-green-700' : factualityScore > 0.4 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+          Fakten: {Math.round(factualityScore * 100)}%
+        </span>
+      )}
+    </div>
+
+    <h3 class="text-lg font-semibold leading-snug group-hover:text-primary transition-colors mb-2">
+      {title}
+    </h3>
+
+    {summary && (
+      <p class="text-sm text-text-muted line-clamp-3 mb-3">{summary}</p>
+    )}
+
+    <div class="flex items-center justify-between text-xs text-text-muted">
+      <div class="flex items-center gap-2">
+        {sourceName && <span>{sourceName}</span>}
+        {publishedAt && (
+          <time datetime={publishedAt}>
+            {new Date(publishedAt).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' })}
+          </time>
+        )}
+      </div>
+    </div>
+
+    {topics.length > 0 && (
+      <div class="flex flex-wrap gap-1 mt-3">
+        {topics.slice(0, 3).map((topic) => (
+          <span class="text-xs px-2 py-0.5 bg-background rounded-full">{topic}</span>
+        ))}
+      </div>
+    )}
+  </div>
+</a>

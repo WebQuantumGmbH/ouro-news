@@ -1,0 +1,16 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import LiveSearch from '@components/vue/LiveSearch.vue';
+import NewsFilter from '@components/vue/NewsFilter.vue';
+
+export const prerender = false;
+---
+
+<BaseLayout title="Analyse-Dashboard">
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <h1 class="text-3xl font-bold">Analyse</h1>
+
+    <LiveSearch client:load />
+    <NewsFilter client:load />
+  </section>
+</BaseLayout>

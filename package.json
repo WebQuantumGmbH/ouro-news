@@ -1,0 +1,49 @@
+{
+  "name": "ouro-news",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "start": "node dist/server/entry.mjs",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "worker:ingestion": "npx tsx workers/ingestion.ts",
+    "worker:analysis": "npx tsx workers/analysis.ts",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "setup": "npm run docker:up && npm run db:push"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@astrojs/check": "^0.9.8",
+    "@astrojs/node": "^9.5.5",
+    "@astrojs/vue": "^5.1.4",
+    "@qdrant/js-client-rest": "^1.17.0",
+    "@tailwindcss/vite": "^4.2.2",
+    "apify-client": "^2.22.3",
+    "arctic": "^3.7.0",
+    "astro": "^5.18.1",
+    "bullmq": "^5.73.5",
+    "cheerio": "^1.1.0",
+    "drizzle-orm": "^0.45.2",
+    "ioredis": "^5.10.1",
+    "mysql2": "^3.22.0",
+    "openai": "^6.34.0",
+    "oslo": "^1.2.1",
+    "rss-parser": "^3.13.0",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^5.9.3",
+    "vue": "^3.5.32"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "drizzle-kit": "^0.31.10",
+    "tsx": "^4.21.0"
+  }
+}

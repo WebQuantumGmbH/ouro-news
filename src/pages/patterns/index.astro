@@ -1,0 +1,20 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PatternExplorer from '@components/vue/PatternExplorer.vue';
+
+export const prerender = false;
+---
+
+<BaseLayout title="Muster-Erkennung">
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div class="max-w-3xl">
+      <h1 class="text-3xl font-bold mb-4">Historische Muster erkennen</h1>
+      <p class="text-text-muted">
+        Die KI vergleicht aktuelle Nachrichtentrends mit historischen Mustern.
+        Beschreibe eine Situation, und das System sucht nach vergleichbaren Szenarien aus der Vergangenheit.
+      </p>
+    </div>
+
+    <PatternExplorer client:load />
+  </section>
+</BaseLayout>

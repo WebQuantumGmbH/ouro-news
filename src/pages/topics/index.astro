@@ -1,0 +1,47 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import { db } from '@lib/db/client';
+import { topics } from '@lib/db/schema';
+import { desc } from 'drizzle-orm';
+
+const allTopics = await db
+  .select()
+  .from(topics)
+  .orderBy(desc(topics.articleCount))
+  .limit(50);
+
+const trendIcons: Record<string, string> = { rising: '📈', stable: '➡️', falling: '📉' };
+---
+
+<BaseLayout title="Themen">
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <h1 class="text-3xl font-bold mb-8">Themen</h1>
+
+    {allTopics.length > 0 ? (
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {allTopics.map((topic) => (
+          <a href={`/topics/${topic.slug}`} class="block p-5 bg-surface rounded-xl border border-border hover:shadow-lg hover:border-primary/30 transition-all">
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="font-semibold">{topic.name}</h3>
+              <span class="text-lg" title={topic.trendDirection}>{trendIcons[topic.trendDirection]}</span>
+            </div>
+            {topic.description && <p class="text-sm text-text-muted line-clamp-2 mb-3">{topic.description}</p>}
+            <div class="flex items-center justify-between text-xs text-text-muted">
+              <span>{topic.articleCount} Artikel</span>
+              <div class="flex gap-1">
+                {(topic.keywords as string[]).slice(0, 3).map((kw) => (
+                  <span class="px-2 py-0.5 bg-background rounded-full">{kw}</span>
+                ))}
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+    ) : (
+      <div class="text-center py-16 bg-surface rounded-xl border border-border">
+        <p class="text-xl text-text-muted">Noch keine Themen erkannt</p>
+        <p class="text-sm text-text-muted mt-2">Themen werden automatisch aus analysierten Artikeln extrahiert.</p>
+      </div>
+    )}
+  </section>
+</BaseLayout>
